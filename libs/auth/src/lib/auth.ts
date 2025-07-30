@@ -14,17 +14,28 @@ const redis = new Redis({
 /* ──────────── NextAuth config ──────────── */
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: UpstashRedisAdapter(redis),
-  trustHost: true,                         // важно для Railway‑прокси
+  trustHost: true,           // важно для Railway‑прокси
   providers: [
-    /* Google OAuth 2.0 */
+    /* Google OAuth 2.0 + Calendar */
     GoogleProvider({
       clientId:     process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: [
+            'openid',
+            'email',
+            'profile',
+            'https://www.googleapis.com/auth/calendar.events' , // полный доступ
+            // 'https://www.googleapis.com/auth/calendar.readonly' // если нужен только read‑only
+          ].join(' ')
+        }
+      }
     }),
 
     /* Email magic‑link (Resend) */
     ResendProvider({
-      apiKey: undefined,                   // оставляем undefined, чтобы письма не уходили
+      apiKey: undefined, // оставляем undefined, чтобы письма не уходили
       async sendVerificationRequest({ url }) {
         console.log('\n>>> Magic Link:', url, '\n');
       },
