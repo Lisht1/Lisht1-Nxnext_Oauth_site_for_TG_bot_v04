@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  redis:
+    image: redis/redis-stack:edge
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+  http_redis:
+    image: ghcr.io/ikatsuba/serverless-redis:1.2
+    ports:
+      - '63799:3000'
+    environment:
+      SR_TOKEN: token
+      REDIS_URL: redis://redis:6379
+
+volumes:
+  redis_data:

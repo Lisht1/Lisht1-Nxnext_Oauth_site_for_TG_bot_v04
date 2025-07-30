@@ -1,0 +1,23 @@
+{
+  "name": "nxnext",
+  "$schema": "./node_modules/nx/schemas/project-schema.json",
+  "tags": [],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "nx dev web",
+            "prefix": "[next]"
+          },
+          {
+            "command": "docker-compose up -d",
+            "prefix": "[docker-compose]"
+          }
+        ],
+        "parallel": true
+      }
+    }
+  }
+}
