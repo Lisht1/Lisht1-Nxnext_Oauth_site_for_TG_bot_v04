@@ -6,30 +6,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,           // важно для Railway‑прокси
   // Добавляем правильную конфигурацию для продакшн
   basePath: '/api/auth',
+  events: {
+    async signIn({ user, account, profile, isNewUser }) {
+      console.log('SignIn event:', { 
+        user: user?.email, 
+        account: account?.provider,
+        isNewUser
+      });
+      
+      // В NextAuth v5 state передается через URL параметры в redirect
+      // Обработка будет в redirect callback
+    },
+  },
   callbacks: {
-    async signIn({ user, account, profile }: any) {
+    async signIn({ user, account, profile, trigger }: any) {
       // Логируем для отладки
       console.log('SignIn callback:', { 
         user: user?.email, 
         account: account?.provider,
-        state: account?.state 
+        trigger
       });
       
-      // Получаем telegram_user_id из state параметра
-      if (!account?.state || typeof account.state !== 'string') {
-        console.log('No state parameter or invalid state type');
-        return true;
-      }
-
+      return true;
+    },
+    async redirect({ url, baseUrl }: any) {
+      console.log('Redirect callback:', { url, baseUrl });
+      
       try {
-        // State содержит user_id напрямую, а не URL
-        const telegramUserId = account.state;
+        // Проверяем, есть ли state параметр в URL
+        const urlObj = new URL(url);
+        const state = urlObj.searchParams.get('state');
         
-        console.log('Telegram user ID from state:', telegramUserId);
-        
-        if (telegramUserId && account?.access_token) {
+        if (state) {
+          console.log('Found state parameter:', state);
+          
+          // Отправляем данные в бот
           try {
-            // Отправляем данные в бот
             const response = await fetch("https://tasksgptbot-production.up.railway.app/webhook/auth", {
               method: "POST",
               headers: {
@@ -37,8 +49,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               },
               body: JSON.stringify({
                 type: "oauth_callback",
-                telegram_user_id: telegramUserId,
-                auth_code: account.access_token,
+                telegram_user_id: state,
+                auth_code: "success", // В redirect callback нет access_token
                 error: null
               }),
             });
@@ -53,16 +65,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         }
       } catch (error) {
-        console.error('Error processing state parameter:', error);
+        console.error('Error parsing redirect URL:', error);
       }
       
-      return true;
-    },
-    async redirect({ url, baseUrl }: any) {
-      console.log('Redirect callback:', { url, baseUrl });
-      
-      // В NextAuth v5 state передается через account.state в signIn callback
-      // Здесь мы просто перенаправляем на главную страницу
+      // Перенаправляем на главную страницу
       return baseUrl;
     }
   },
