@@ -30,7 +30,7 @@ export default function HomePage() {
           Вы успешно вошли через Google.<br />
           Бот уже готов синхронизировать ваши задачи с календарём.
         </p>
-        <Link href="https://t.me/YourBotUsername">
+        <Link href="https://t.me/L1MyTaskManagerBot">
           <button
             style={{
               background: "#2196f3",
