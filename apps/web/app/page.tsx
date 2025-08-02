@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function HomePage() {
+function OAuthCallbackHandler() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
@@ -61,49 +61,6 @@ export default function HomePage() {
 
   if (status === "loading") {
     return (
-      <main
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#f8f9fa",
-          padding: "2rem",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 400,
-            width: "100%",
-            background: "#fff",
-            borderRadius: 16,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-            padding: 32,
-            textAlign: "center",
-          }}
-        >
-          <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
-            🔄 Обработка авторизации...
-          </h1>
-          <p style={{ color: "#888", marginBottom: 32 }}>
-            Пожалуйста, подождите...
-          </p>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#f8f9fa",
-        padding: "2rem",
-      }}
-    >
       <div
         style={{
           maxWidth: 400,
@@ -116,37 +73,100 @@ export default function HomePage() {
         }}
       >
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
-          {status === "success" ? "✅ Успешно!" : "❌ Ошибка"}
+          🔄 Обработка авторизации...
         </h1>
         <p style={{ color: "#888", marginBottom: 32 }}>
-          {message}
-        </p>
-        {status === "success" && (
-          <Link href="https://t.me/L1MyTaskManagerBot">
-            <button
-              style={{
-                background: "#2196f3",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                padding: "12px 32px",
-                fontSize: 16,
-                cursor: "pointer",
-                fontWeight: 600,
-                marginBottom: 24,
-              }}
-            >
-              Перейти в Telegram-бот
-            </button>
-          </Link>
-        )}
-        <p style={{ fontSize: 12, color: "#aaa" }}>
-          {status === "success" 
-            ? "После авторизации это окно можно закрыть."
-            : "Попробуйте еще раз через бот."
-          }
+          Пожалуйста, подождите...
         </p>
       </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        maxWidth: 400,
+        width: "100%",
+        background: "#fff",
+        borderRadius: 16,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        padding: 32,
+        textAlign: "center",
+      }}
+    >
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
+        {status === "success" ? "✅ Успешно!" : "❌ Ошибка"}
+      </h1>
+      <p style={{ color: "#888", marginBottom: 32 }}>
+        {message}
+      </p>
+      {status === "success" && (
+        <Link href="https://t.me/L1MyTaskManagerBot">
+          <button
+            style={{
+              background: "#2196f3",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "12px 32px",
+              fontSize: 16,
+              cursor: "pointer",
+              fontWeight: 600,
+              marginBottom: 24,
+            }}
+          >
+            Перейти в Telegram-бот
+          </button>
+        </Link>
+      )}
+      <p style={{ fontSize: 12, color: "#aaa" }}>
+        {status === "success" 
+          ? "После авторизации это окно можно закрыть."
+          : "Попробуйте еще раз через бот."
+        }
+      </p>
+    </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div
+      style={{
+        maxWidth: 400,
+        width: "100%",
+        background: "#fff",
+        borderRadius: 16,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+        padding: 32,
+        textAlign: "center",
+      }}
+    >
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 16 }}>
+        🔄 Загрузка...
+      </h1>
+      <p style={{ color: "#888", marginBottom: 32 }}>
+        Пожалуйста, подождите...
+      </p>
+    </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#f8f9fa",
+        padding: "2rem",
+      }}
+    >
+      <Suspense fallback={<LoadingFallback />}>
+        <OAuthCallbackHandler />
+      </Suspense>
     </main>
   );
 }

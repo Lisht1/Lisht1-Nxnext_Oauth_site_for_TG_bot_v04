@@ -1,3 +1,3 @@
 import 'server-only';
 
-export * from './lib/auth';
+export * from './lib/auth.js';
