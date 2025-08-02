@@ -6,8 +6,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,           // важно для Railway‑прокси
   // Добавляем правильную конфигурацию для продакшн
   basePath: '/api/auth',
-  // Убеждаемся что используется правильный URL
-  url: process.env.NEXTAUTH_URL || 'https://nxnext-fnse-production.up.railway.app',
   callbacks: {
     async signIn({ user, account, profile }: any) {
       // Логируем для отладки
