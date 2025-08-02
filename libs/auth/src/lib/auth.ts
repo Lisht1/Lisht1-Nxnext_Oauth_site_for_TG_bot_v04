@@ -27,51 +27,44 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         trigger
       });
       
+      // В NextAuth v5 state передается через account.state
+      if (account?.state) {
+        console.log('Found state in account:', account.state);
+        
+        // Отправляем данные в бот
+        try {
+          const response = await fetch("https://tasksgptbot-production.up.railway.app/webhook/auth", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              type: "oauth_callback",
+              telegram_user_id: account.state,
+              auth_code: "success",
+              error: null
+            }),
+          });
+          
+          console.log('OAuth callback sent to bot:', response.status);
+          
+          if (!response.ok) {
+            console.error('Bot webhook error:', response.status, await response.text());
+          }
+        } catch (error) {
+          console.error('Error sending OAuth callback to bot:', error);
+        }
+      } else {
+        console.log('No state found in account');
+      }
+      
       return true;
     },
         async redirect({ url, baseUrl }: any) {
       console.log('Redirect callback:', { url, baseUrl });
       
-      // В NextAuth v5 state передается через URL параметры при инициализации
-      // Нужно получить его из оригинального запроса
-      try {
-        // Проверяем, есть ли state в URL
-        const urlObj = new URL(url);
-        console.log('URL search params:', urlObj.searchParams.toString());
-        const state = urlObj.searchParams.get('state');
-        
-        if (state) {
-          console.log('Found state parameter:', state);
-          
-          // Отправляем данные в бот
-          try {
-            const response = await fetch("https://tasksgptbot-production.up.railway.app/webhook/auth", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                type: "oauth_callback",
-                telegram_user_id: state,
-                auth_code: "success",
-                error: null
-              }),
-            });
-            
-            console.log('OAuth callback sent to bot:', response.status);
-            
-            if (!response.ok) {
-              console.error('Bot webhook error:', response.status, await response.text());
-            }
-          } catch (error) {
-            console.error('Error sending OAuth callback to bot:', error);
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing URL:', error);
-      }
-      
-      // Перенаправляем на главную страницу
+      // Просто перенаправляем на главную страницу
+      // State обрабатывается в signIn callback
       return baseUrl;
     }
   },
