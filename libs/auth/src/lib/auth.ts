@@ -32,19 +32,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async redirect({ url, baseUrl }: any) {
       console.log('Redirect callback:', { url, baseUrl });
       
-      // Проверяем, является ли URL URL бота (не наш домен)
-      if (url.includes('tasksgptbot-production.up.railway.app')) {
-        console.log('Redirecting to bot URL, extracting state from original request');
-        
-        // Получаем state из оригинального запроса
-        // В NextAuth v5 state передается через URL параметры при инициализации
-        try {
-          // Извлекаем state из URL бота
-          const urlObj = new URL(url);
-          const state = urlObj.searchParams.get('state');
-          
-          if (state) {
-            console.log('Found state parameter from bot URL:', state);
+             // Проверяем, является ли URL URL бота (не наш домен)
+       if (url.includes('tasksgptbot-production.up.railway.app')) {
+         console.log('Redirecting to bot URL, extracting state from original request');
+         console.log('Full URL:', url);
+         
+         // Получаем state из оригинального запроса
+         // В NextAuth v5 state передается через URL параметры при инициализации
+         try {
+           // Извлекаем state из URL бота
+           const urlObj = new URL(url);
+           console.log('URL search params:', urlObj.searchParams.toString());
+           const state = urlObj.searchParams.get('state');
+           
+           if (state) {
+             console.log('Found state parameter from bot URL:', state);
             
             // Отправляем данные в бот
             try {
