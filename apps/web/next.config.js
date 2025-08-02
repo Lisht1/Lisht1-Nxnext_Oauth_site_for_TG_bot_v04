@@ -17,6 +17,15 @@ const nextConfig = {
     // See: https://github.com/gregberge/svgr
     svgr: false,
   },
+  // Конфигурация для OAuth
+  env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://nxnext-fnse-production.up.railway.app',
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  },
+  // Важно для Railway
+  experimental: {
+    trustHostHeader: true,
+  },
 };
 
 const plugins = [

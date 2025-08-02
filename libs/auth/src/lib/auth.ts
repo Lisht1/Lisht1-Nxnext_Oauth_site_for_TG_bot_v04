@@ -4,6 +4,10 @@ import GoogleProvider from 'next-auth/providers/google';
 /* ──────────── NextAuth config ──────────── */
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,           // важно для Railway‑прокси
+  // Добавляем правильную конфигурацию для продакшн
+  basePath: '/api/auth',
+  // Убеждаемся что используется правильный URL
+  url: process.env.NEXTAUTH_URL || 'https://nxnext-fnse-production.up.railway.app',
   callbacks: {
     async signIn({ user, account, profile }: any) {
       // Логируем для отладки
@@ -13,15 +17,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         state: account?.state 
       });
       
-      // Получаем telegram_user_id из URL параметров
+      // Получаем telegram_user_id из state параметра
       if (!account?.state || typeof account.state !== 'string') {
         console.log('No state parameter or invalid state type');
         return true;
       }
 
       try {
-        const url = new URL(account.state);
-        const telegramUserId = url.searchParams.get('state');
+        // State содержит user_id напрямую, а не URL
+        const telegramUserId = account.state;
         
         console.log('Telegram user ID from state:', telegramUserId);
         
@@ -51,7 +55,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
         }
       } catch (error) {
-        console.error('Error parsing state URL:', error);
+        console.error('Error processing state parameter:', error);
       }
       
       return true;
