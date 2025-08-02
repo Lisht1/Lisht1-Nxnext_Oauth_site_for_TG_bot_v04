@@ -1,22 +1,18 @@
-const NextAuth = require('next-auth');
-const GoogleProvider = require('next-auth/providers/google');
-const ResendProvider = require('next-auth/providers/resend');
-
-const { UpstashRedisAdapter } = require('@auth/upstash-redis-adapter');
-const { Redis } = require('@upstash/redis');
-
-/* ──────────── Redis (Upstash) ──────────── */
-const redis = new Redis({
-  url:   process.env.UPSTASH_REDIS_URL,   // обязательно в env
-  token: process.env.UPSTASH_REDIS_TOKEN, // обязательно в env
-});
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
 
 /* ──────────── NextAuth config ──────────── */
-const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: UpstashRedisAdapter(redis),
+export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,           // важно для Railway‑прокси
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile }: any) {
+      // Логируем для отладки
+      console.log('SignIn callback:', { 
+        user: user?.email, 
+        account: account?.provider,
+        state: account?.state 
+      });
+      
       // Получаем telegram_user_id из URL параметров
       if (!account?.state || typeof account.state !== 'string') {
         console.log('No state parameter or invalid state type');
@@ -26,6 +22,8 @@ const { handlers, signIn, signOut, auth } = NextAuth({
       try {
         const url = new URL(account.state);
         const telegramUserId = url.searchParams.get('state');
+        
+        console.log('Telegram user ID from state:', telegramUserId);
         
         if (telegramUserId && account?.access_token) {
           try {
@@ -44,6 +42,10 @@ const { handlers, signIn, signOut, auth } = NextAuth({
             });
             
             console.log('OAuth callback sent to bot:', response.status);
+            
+            if (!response.ok) {
+              console.error('Bot webhook error:', response.status, await response.text());
+            }
           } catch (error) {
             console.error('Error sending OAuth callback to bot:', error);
           }
@@ -54,13 +56,17 @@ const { handlers, signIn, signOut, auth } = NextAuth({
       
       return true;
     },
-    async redirect({ url, baseUrl }) {
+    async redirect({ url, baseUrl }: any) {
+      console.log('Redirect callback:', { url, baseUrl });
+      
       // Перенаправляем на главную страницу с параметрами
       try {
         const urlObj = new URL(url);
         const telegramUserId = urlObj.searchParams.get('state');
         if (telegramUserId) {
-          return `${baseUrl}/?state=${telegramUserId}`;
+          const redirectUrl = `${baseUrl}/?state=${telegramUserId}`;
+          console.log('Redirecting to:', redirectUrl);
+          return redirectUrl;
         }
       } catch (error) {
         console.error('Error parsing redirect URL:', error);
@@ -71,8 +77,8 @@ const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     /* Google OAuth 2.0 + Calendar */
     GoogleProvider({
-      clientId:     process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId:     process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
           scope: [
@@ -85,15 +91,5 @@ const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
     }),
-
-    /* Email magic‑link (Resend) */
-    ResendProvider({
-      apiKey: undefined, // оставляем undefined, чтобы письма не уходили
-      async sendVerificationRequest({ url }) {
-        console.log('\n>>> Magic Link:', url, '\n');
-      },
-    }),
   ],
-});
-
-module.exports = { handlers, signIn, signOut, auth }; 
+}); 
