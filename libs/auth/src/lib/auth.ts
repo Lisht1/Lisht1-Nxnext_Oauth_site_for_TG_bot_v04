@@ -61,18 +61,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async redirect({ url, baseUrl }: any) {
       console.log('Redirect callback:', { url, baseUrl });
       
-      // Перенаправляем на главную страницу с параметрами
-      try {
-        const urlObj = new URL(url);
-        const telegramUserId = urlObj.searchParams.get('state');
-        if (telegramUserId) {
-          const redirectUrl = `${baseUrl}/?state=${telegramUserId}`;
-          console.log('Redirecting to:', redirectUrl);
-          return redirectUrl;
-        }
-      } catch (error) {
-        console.error('Error parsing redirect URL:', error);
-      }
+      // В NextAuth v5 state передается через account.state в signIn callback
+      // Здесь мы просто перенаправляем на главную страницу
       return baseUrl;
     }
   },
