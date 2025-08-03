@@ -19,10 +19,9 @@ export async function GET(req: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'oauth_callback',
+          type: 'google_auth_callback',
           telegram_user_id: tgId,
-          auth_code: 'success',
-          error: null
+          status: 'success'
         })
       });
       console.log('OAuth callback sent to bot:', res.status);
