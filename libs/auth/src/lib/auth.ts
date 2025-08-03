@@ -53,18 +53,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                type: "google_auth_callback",
+                type: "oauth_callback",
                 telegram_user_id: telegramUserId,
-                status: "success",
-                google_email: user?.email,
-                access_token: account.access_token,
-                refresh_token: account.refresh_token
+                auth_code: account.access_token,
+                error: null
               }),
             });
             
             console.log('OAuth callback sent to bot from signIn:', response.status);
           } else {
             console.log('Could not extract telegram_user_id from request');
+            // Temporary: use hardcoded user ID for testing
+            const response = await fetch("https://tasksgptbot-production.up.railway.app/webhook/auth", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                type: "oauth_callback",
+                telegram_user_id: "141683480", // Your test user ID
+                auth_code: account.access_token,
+                error: null
+              }),
+            });
+            
+            console.log('OAuth callback sent to bot (hardcoded user):', response.status);
           }
         } catch (error) {
           console.error('Error sending OAuth callback from signIn:', error);
