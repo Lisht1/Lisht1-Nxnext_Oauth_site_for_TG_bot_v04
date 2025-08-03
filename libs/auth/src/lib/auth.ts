@@ -47,7 +47,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
           
           if (telegramUserId) {
-            const response = await fetch("https://tasksgptbot-production.up.railway.app:8080/webhook/auth", {
+            const response = await fetch("https://tasksgptbot-production.up.railway.app/webhook/auth", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -64,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           } else {
             console.log('Could not extract telegram_user_id from request');
             // Temporary: use hardcoded user ID for testing
-            const response = await fetch("https://tasksgptbot-production.up.railway.app:8080/webhook/auth", {
+            const response = await fetch("https://tasksgptbot-production.up.railway.app/webhook/auth", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
