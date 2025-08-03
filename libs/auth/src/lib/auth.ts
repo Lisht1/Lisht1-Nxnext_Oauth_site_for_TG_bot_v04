@@ -29,13 +29,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       
       return true;
     },
-        async redirect({ url, baseUrl }: any) {
-      console.log('Redirect callback:', { url, baseUrl });
-      
-      // Просто перенаправляем на главную страницу
-      // State обрабатывается в signIn callback
-      return baseUrl;
-    }
+    
   },
   providers: [
     /* Google OAuth 2.0 + Calendar */
