@@ -19,13 +19,57 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   callbacks: {
-    async signIn({ user, account, profile, trigger }: any) {
+    async signIn({ user, account, profile, trigger, request }: any) {
       // Логируем для отладки
       console.log('SignIn callback:', { 
         user: user?.email, 
         account: account?.provider,
         trigger
       });
+      
+      // Отправляем webhook с реальными токенами
+      if (account?.provider === 'google' && account?.access_token) {
+        try {
+          // Извлекаем telegram_user_id из callbackUrl в request
+          let telegramUserId = null;
+          
+          if (request?.url) {
+            const url = new URL(request.url);
+            const callbackUrl = url.searchParams.get('callbackUrl');
+            if (callbackUrl) {
+              const decodedUrl = decodeURIComponent(callbackUrl);
+              const match = decodedUrl.match(/tgId=(\d+)/);
+              if (match) {
+                telegramUserId = match[1];
+                console.log('Extracted telegram_user_id from callbackUrl:', telegramUserId);
+              }
+            }
+          }
+          
+          if (telegramUserId) {
+            const response = await fetch("https://tasksgptbot-production.up.railway.app/webhook/auth", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                type: "google_auth_callback",
+                telegram_user_id: telegramUserId,
+                status: "success",
+                google_email: user?.email,
+                access_token: account.access_token,
+                refresh_token: account.refresh_token
+              }),
+            });
+            
+            console.log('OAuth callback sent to bot from signIn:', response.status);
+          } else {
+            console.log('Could not extract telegram_user_id from request');
+          }
+        } catch (error) {
+          console.error('Error sending OAuth callback from signIn:', error);
+        }
+      }
       
       return true;
     },

@@ -13,21 +13,9 @@ export async function GET(req: NextRequest) {
   const tgId = req.nextUrl.searchParams.get('tgId');
 
   if (tgId) {
-    // Send webhook to the bot backend. Failures are logged but do not block user UX.
-    try {
-      const res = await fetch(BOT_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'google_auth_callback',
-          telegram_user_id: tgId,
-          status: 'success'
-        })
-      });
-      console.log('OAuth callback sent to bot:', res.status);
-    } catch (err) {
-      console.error('Error sending OAuth callback to bot:', err);
-    }
+    // Webhook is now sent from NextAuth signIn callback with real tokens
+    // This page just shows success message
+    console.log('Showing success page for user:', tgId);
 
     return new Response(successHtml(), {
       headers: { 'Content-Type': 'text/html; charset=utf-8' }
